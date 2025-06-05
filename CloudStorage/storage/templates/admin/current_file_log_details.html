@@ -1,0 +1,54 @@
+{% extends 'CloudStorage/header.html' %}
+
+{% block content %}
+  <div class="container mt-5">
+    <h2>Log Details for: {{ file.original_title|default:file_title }}</h2>
+
+    {% if not file %}
+      <div class="alert alert-warning">The original file has been permanently deleted. Showing log history only.</div>
+    {% else %}
+      <p>
+        <strong>Owner:</strong> {{ file.owner.get_full_name|default:file.owner.username }}
+      </p>
+      <p>
+        <strong>Description:</strong> {{ file.file_description|default:'Not available' }}
+      </p>
+      <p>
+        <strong>Uploaded At:</strong> {{ file.created_at|date:'Y-m-d H:i' }}
+      </p>
+    {% endif %}
+
+    <hr />
+    <div class="d-flex justify-content-between">
+      <h4>Activity Logs</h4>
+      <a href="{% url 'export_current_file_logs' logs.0.file_uid %}" class="btn btn-success">Export Logs as CSV</a>
+    </div>
+    <table class="table table-bordered table-striped mt-3">
+      <thead class="thead-dark">
+        <tr>
+          <th>SN</th>
+          <th>Timestamp</th>
+          <th>User</th>
+          <th>Action</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ log.timestamp|date:'Y-m-d H:i:s' }}</td>
+            <td>{{ log.performed_by.get_full_name|default:log.performed_by.username|default:'Deleted User' }}</td>
+            <td>{{ log.get_action_display }}</td>
+            <td>{{ log.details|default:'—' }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="4">No logs found.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <a href="{% url 'current_file_logs_list' %}" class="btn btn-danger mt-3">Back to Logs List</a>
+  </div>
+{% endblock %}

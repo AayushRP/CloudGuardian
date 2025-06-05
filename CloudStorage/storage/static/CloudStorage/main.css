@@ -1,0 +1,66 @@
+/* General Reset and Base Styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.navbar {
+    background-color: #007BFF;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.nav-link,
+.navbar-text {
+    text-decoration: none;
+    color: #fff;
+    transition: color 0.3s;
+}
+
+.nav-link:hover {
+    color: #333;
+}
+
+.shared-users {
+    background-color: #007BFF;
+    border-radius: 20%;
+    padding: 3px;
+    margin: 2px;
+    color: #fff;
+}
+
+.shared-groups {
+    background-color: #004084;
+    border-radius: 20%;
+    padding: 3px;
+    margin: 2px;
+    color: #fff;
+}
+
+.main-content {
+    flex: 1; /* Fills available vertical space */
+    padding-bottom: 2rem; /* Optional: adds spacing above footer */
+}
+
+footer {
+    background-color: #1b1f23;
+    color: #d0dfff;
+    text-align: center;
+    padding: 1rem 0;
+    font-size: 0.9rem;
+    border-top: 1px solid #333;
+    width: 100%;
+}

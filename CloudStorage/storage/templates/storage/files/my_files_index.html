@@ -1,0 +1,108 @@
+{% extends 'CloudStorage/header.html' %}
+
+{% block title %}
+  Files
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid mt-4">
+    <a href="{% url 'create_file' %}" class="btn btn-primary btn-lg"><i class="fa-solid fa-square-plus"></i>&nbsp;&nbsp;Upload a New File</a>
+    <div class="table-responsive mt-4">
+      <h2>Your Uploaded Files</h2>
+      {% if page_obj %}
+        <table class="table table-bordered table-striped mt-3">
+          <thead class="thead-dark">
+            <tr>
+              <th>S.N.</th>
+              <th>File Name</th>
+              <th>Uploaded At</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for file in page_obj %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ file.original_title }}</td>
+                <td>{{ file.created_at }}</td>
+                <td>
+                  {% if request.user == file.owner or request.user in file.shared_with.all %}
+                    <a href="{% url 'view_file' file.file_uid %}" class="btn btn-success btn-sm m-1">View</a>
+                  {% endif %}
+                  <!-- Change Permissions / Delete Button -->
+                  {% if request.user == file.owner %}
+                    <a href="{% url 'change_permissions' file.file_uid %}" class="btn btn-warning btn-sm m-1">Permissions</a>                    
+                    <button class="btn btn-danger btn-sm m-1" data-toggle="modal" data-target="#deleteModal{{ file.file_uid }}">Delete</button>
+                    
+                    <!-- Delete Confirmation Modal -->
+                    <div class="modal fade" id="deleteModal{{ file.file_uid }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                      <div class="modal-dialog" role="document">
+                        <form method="POST" action="{% url 'delete_file' file.file_uid %}">
+                          {% csrf_token %}
+                          <div class="modal-content">
+                            <div class="modal-header bg-danger text-white">
+                              <h5 class="modal-title" id="deleteModalLabel">Confirm File Deletion</h5>
+                              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span class="text-white" aria-hidden="true">&times;</span></button>
+                            </div>
+                            <div class="modal-body">
+                              <p>
+                                Please enter your password to delete <strong>{{ file.original_title }}</strong>.
+                              </p>
+                              <input type="password" name="password" class="form-control" placeholder="Enter your password" required />
+                            </div>
+                            <div class="modal-footer">
+                              <button type="submit" class="btn btn-danger">Delete</button>
+                              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                            </div>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <nav aria-label="Page navigation">
+          <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled">
+                <span class="page-link">Previous</span>
+              </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+              {% if page_obj.number == num %}
+                <li class="page-item active">
+                  <span class="page-link">{{ num }}</span>
+                </li>
+              {% else %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+              {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled">
+                <span class="page-link">Next</span>
+              </li>
+            {% endif %}
+          </ul>
+        </nav>
+      {% else %}
+        <p>No files found.</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

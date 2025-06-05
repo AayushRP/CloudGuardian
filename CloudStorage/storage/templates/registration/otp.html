@@ -1,0 +1,19 @@
+{% extends 'CloudStorage/header.html' %}
+{% load static %}
+{% block title %}
+  Login
+{% endblock %}
+{% load crispy_forms_tags %}
+{% block content %}
+  <div class="container mt-5">
+    <div class="container text-center mt-2">
+      <img src="{% static 'storage/CloudGuardian.jpg' %}" width="300" alt="Cloud Guardian" /><br />
+    </div>
+    <form class="mt-2" method="post">
+      {% csrf_token %}
+      <label for="otp">OTP:</label>
+      <input type="text" class="form-control" name="otp" id="otp" required />
+      <button type="submit" class="btn btn-primary mt-2">Confirm</button>
+    </form>
+  </div>
+{% endblock %}

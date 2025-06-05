@@ -1,0 +1,173 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cloud Guardian</title>
+    <link rel="icon" href="{% static 'storage/favicon_io/favicon.ico' %}" />
+    <link rel="stylesheet" href="{% static 'CloudStorage/public.css' %}" />
+  </head>
+  <body>
+    <header>
+      <nav class="navbar">
+        <div class="nav-content">
+          <div class="nav-left">
+            <a href="#top"><img src="{% static 'storage/CloudGuardian.jpg' %}" width="60" alt="Cloud Guardian Logo" class="nav-logo" /></a>
+            <span class="nav-title">Cloud Guardian</span>
+          </div>
+          <ul class="nav-links">
+            <li>
+              <a href="#about">About</a>
+            </li>
+            <li>
+              <a href="#team">Team</a>
+            </li>
+            <li>
+              <a href="#features">Features</a>
+            </li>
+            <li>
+              <a href="#testimonials">Testimonials</a>
+            </li>
+            <li>
+              <a href="#how-it-works">How It Works</a>
+            </li>
+            <li>
+              <a href="#contact">Contact</a>
+            </li>
+            <li>
+              <a href="#faq">FAQ</a>
+            </li>
+            <li>
+              <a class="nav-link" href="/login">Login</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+      <div class="container header-content">
+        <img src="{% static 'storage/CloudGuardian.jpg' %}" alt="Cloud Guardian Logo" class="logo" />
+        <h1>Cloud Guardian</h1>
+        <p class="tagline">Complete Secure Solution for Cloud Storage.</p>
+      </div>
+    </header>
+
+    <section class="about-section" id="about">
+      <div class="container">
+        <h2>About Us</h2>
+        <p>At Cloud Guardian, we are committed to redefining cloud storage security with cutting-edge technology and unwavering dedication. Our platform is designed to offer robust, end-to-end encrypted file storage where each file chunk is secured using AES-256, stored safely, and verified for integrity. Built by a passionate team of cybersecurity experts, backend developers, and cloud engineers, Cloud Guardian empowers individuals and organizations to store, manage, and access their data with confidence. We believe in privacy, resilience, and trust at the core of everything we do.</p>
+      </div>
+    </section>
+
+    <section class="team-section" id="team">
+      <div class="container">
+        <h2>Our Team</h2>
+        <div class="team-grid">
+          <div class="team-member">
+            <img src="{% static 'CloudStorage/images/nisha.jpg' %}" alt="nisha" />
+            <h3>Nisha Khanal</h3>
+            <p>Project Manager</p>
+          </div>
+          <div class="team-member">
+            <img src="{% static 'CloudStorage/images/kapil.jpg' %}" alt="kapil" />
+            <h3>Kapil Aeri</h3>
+            <p>IT / Business Strategist</p>
+          </div>
+          <div class="team-member">
+            <img src="{% static 'CloudStorage/images/sushil.jpg' %}" alt="sushil" />
+            <h3>Sushil Jamarkattel</h3>
+            <p>Security Engineer</p>
+          </div>
+          <div class="team-member">
+            <img src="{% static 'CloudStorage/images/dhabin.jpg' %}" alt="dhabin" />
+            <h3>Dhabin Pun</h3>
+            <p>Front-end Developer</p>
+          </div>
+          <div class="team-member">
+            <img src="{% static 'CloudStorage/images/also-me.jpg' %}" alt="aayush" />
+            <h3>Aayush Raj Pandey</h3>
+            <p>Back-end Developer</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="features-section" id="features">
+      <div class="container">
+        <h2>Features</h2>
+        <div class="features-grid">
+          <div class="feature">
+            <h3>AES-256 Encryption</h3>
+            <p>Each file chunk is encrypted using a unique AES-256 key to ensure top-tier data security.</p>
+          </div>
+          <div class="feature">
+            <h3>Integrity Verification</h3>
+            <p>All uploaded files are verified using secure hash algorithms to prevent tampering or corruption.</p>
+          </div>
+          <div class="feature">
+            <h3>Access Control</h3>
+            <p>Role-based access and multi-factor authentication ensure only authorized users can access your data.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="testimonials-section" id="testimonials">
+      <div class="container">
+        <h2>What Our Users Say</h2>
+        <blockquote>
+          “Cloud Guardian gives me peace of mind knowing my sensitive files are stored securely.”<br />
+          — Jane D., Software Engineer
+        </blockquote>
+        <blockquote>
+          “Incredible team, fast performance, and unmatched data protection features.”<br />
+          — Michael K., IT Consultant
+        </blockquote>
+      </div>
+    </section>
+
+    <section class="how-it-works-section" id="how-it-works">
+      <div class="container">
+        <h2>How It Works</h2>
+        <ol>
+          <li>User uploads a file via a secure interface.</li>
+          <li>The file is split into 3 chunks.</li>
+          <li>Each chunk is encrypted using AES-256 and stored securely.</li>
+          <li>On download, chunks are decrypted, reassembled, and hash-matched to verify integrity.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="contact-section" id="contact">
+      <div class="container">
+        <h2>Contact Us</h2>
+        <form>
+          <input type="text" placeholder="Your Name" required />
+          <input type="email" placeholder="Your Email" required />
+          <textarea placeholder="Your Message"></textarea>
+          <button type="submit">Send</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="faq-section" id="faq">
+      <div class="container">
+        <h2>Frequently Asked Questions</h2>
+        <div class="faq">
+          <h3>Is my data safe with Cloud Guardian?</h3>
+          <p>Absolutely. We use military-grade encryption, access control, and integrity checks to keep your data secure.</p>
+        </div>
+        <div class="faq">
+          <h3>Can I share files with others?</h3>
+          <p>Yes, you can securely share files with specific users or groups using access permissions.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="container">
+        <p>&copy; 2025 Cloud Guardian. All rights reserved.</p>
+      </div>
+    </footer>
+  </body>
+</html>

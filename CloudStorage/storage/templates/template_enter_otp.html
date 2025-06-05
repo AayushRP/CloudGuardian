@@ -1,0 +1,9 @@
+{% autoescape off %}
+Hi {{ user.username }},
+
+Please use the following OTP to login:
+
+{{ otp }}
+
+This will expire in 1 minute.
+{% endautoescape %}

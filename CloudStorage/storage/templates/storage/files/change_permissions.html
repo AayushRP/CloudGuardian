@@ -1,0 +1,73 @@
+{% extends 'CloudStorage/header.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+  Change Permissions
+{% endblock %}
+
+{% block content %}
+  <div class="container mt-5">
+    <h2>Change Sharing Permissions for: <strong>{{ file.original_title }}</strong></h2>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.share_mode|as_crispy_field }}
+      <div id="user-select" style="display: none;">{{ form.shared_users|as_crispy_field }}</div>
+      <div id="group-select" style="display: none;">{{ form.shared_groups|as_crispy_field }}</div>
+      <button type="submit" class="btn btn-primary mt-3">Update Permissions</button>
+      <button type="button" onclick="history.back()" class="btn btn-danger mt-3 ml-2">Back</button>
+    </form>
+  </div>
+{% endblock %}
+
+{% block js_scripts %}
+  <script>
+    function toggleShareFields() {
+      const selected = document.querySelector('input[name="share_mode"]:checked')
+      const userSelect = document.getElementById('user-select')
+      const groupSelect = document.getElementById('group-select')
+    
+      if (selected) {
+        if (selected.value === 'users') {
+          userSelect.style.display = 'block'
+          groupSelect.style.display = 'none'
+        } else if (selected.value === 'groups') {
+          userSelect.style.display = 'none'
+          groupSelect.style.display = 'block'
+        }
+      } else {
+        userSelect.style.display = 'none'
+        groupSelect.style.display = 'none'
+      }
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      toggleShareFields()
+    
+      document.querySelectorAll('input[name="share_mode"]').forEach((radio) => {
+        radio.addEventListener('change', toggleShareFields)
+      })
+    
+      // Clear hidden selections on submit
+      document.querySelector('form').addEventListener('submit', () => {
+        const selected = document.querySelector('input[name="share_mode"]:checked')
+        if (selected.value === 'users') {
+          // Clear groups if hidden
+          const groupSelect = document.querySelector('#group-select select')
+          if (groupSelect) {
+            for (let option of groupSelect.options) {
+              option.selected = false
+            }
+          }
+        } else if (selected.value === 'groups') {
+          // Clear users if hidden
+          const userSelect = document.querySelector('#user-select select')
+          if (userSelect) {
+            for (let option of userSelect.options) {
+              option.selected = false
+            }
+          }
+        }
+      })
+    })
+  </script>
+{% endblock %}

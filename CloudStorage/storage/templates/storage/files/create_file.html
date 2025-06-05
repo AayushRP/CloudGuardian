@@ -1,0 +1,60 @@
+{% extends 'CloudStorage/header.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+  Create File
+{% endblock %}
+
+{% block content %}
+  <div class="container mt-5">
+    <h4>Upload a New File</h4>
+    <form class="mt-4" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <label for="main_file_label" class="form-label requiredField">Select File<span class="asteriskField">*</span></label>
+      <input class="form-control mb-3" type="file" name="main_file" id="main_file" />
+
+      {{ form.file_description|as_crispy_field }}
+      {{ form.share_mode|as_crispy_field }}
+
+      <!-- Conditionally rendered fields -->
+      <div id="user-select" style="display: none;">{{ form.shared_users|as_crispy_field }}</div>
+
+      <div id="group-select" style="display: none;">{{ form.shared_groups|as_crispy_field }}</div>
+
+      <button type="submit" class="btn btn-primary mt-3">Upload</button>
+      <button type="button" onclick="history.back()" class="btn btn-danger mt-3 ml-2">Back</button>
+
+    </form>
+
+  </div>
+{% endblock %}
+
+{% block js_scripts %}
+  <script>
+    function toggleShareFields() {
+      const selected = document.querySelector('input[name="share_mode"]:checked')
+      const userSelect = document.getElementById('user-select')
+      const groupSelect = document.getElementById('group-select')
+    
+      if (selected) {
+        if (selected.value === 'users') {
+          userSelect.style.display = 'block'
+          groupSelect.style.display = 'none'
+        } else if (selected.value === 'groups') {
+          userSelect.style.display = 'none'
+          groupSelect.style.display = 'block'
+        }
+      } else {
+        userSelect.style.display = 'none'
+        groupSelect.style.display = 'none'
+      }
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      toggleShareFields() // initial toggle
+      document.querySelectorAll('input[name="share_mode"]').forEach((radio) => {
+        radio.addEventListener('change', toggleShareFields)
+      })
+    })
+  </script>
+{% endblock %}

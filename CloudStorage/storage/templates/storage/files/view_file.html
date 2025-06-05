@@ -1,0 +1,72 @@
+{% extends 'CloudStorage/header.html' %}
+
+{% block title %}
+  View File
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid mt-4">
+    <div class="table-responsive mt-4">
+      <h2>View File</h2>
+      <table class="table table-bordered table-striped mt-3">
+        <thead class="thead-dark">
+          <tr>
+            <th>Title</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>File Title</th>
+            <td>{{ file.original_title }}</td>
+          </tr>
+          <tr>
+            <th>Uploaded At</th>
+            <td>{{ file.created_at }}</td>
+          </tr>
+          <tr>
+            <th>File Description</th>
+            <td>{{ file.file_description }}</td>
+          </tr>
+          <tr>
+            <th>File Owner</th>
+            <td>{{ file.owner }}</td>
+          </tr>
+          <tr>
+            <th>Shared Users</th>
+            <td>
+              {% for user in file.shared_users.all %}
+                <span class="shared-users">{{ user.get_full_name|default:user.username }}</span>
+              {% empty %}
+                No users shared.
+              {% endfor %}
+            </td>
+          </tr>
+          <tr>
+            <th>Shared Groups</th>
+            <td>
+              {% for group in file.shared_groups.all %}
+                <span class="shared-users">{{ group.name }}</span>
+              {% empty %}
+                No groups shared.
+              {% endfor %}
+            </td>
+          </tr>
+          <tr>
+            <th>File Hash</th>
+            <td>{{ file.file_hash|default:'Not computed' }}</td>
+          </tr>
+          <tr>
+            <th>Action</th>
+            <td>
+              {% if is_allowed %}
+                <a href="{% url 'download_file' file.file_uid %}" class="btn btn-success btn-sm m-1">Download</a>
+              {% endif %}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <button type="button" onclick="history.back()" class="btn btn-danger">Back</button>
+    </div>
+  </div>
+{% endblock %}
