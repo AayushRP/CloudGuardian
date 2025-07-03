@@ -1,0 +1,59 @@
+{% extends 'CloudStorage/header.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+  My Profile
+{% endblock %}
+
+{% block content %}
+  <div class="container mt-5">
+    <h2>Welcome, {{ user.get_full_name|default:user.username }}</h2>
+    <hr />
+
+    <div class="row">
+      <div class="col-md-6 my-2">
+        <h4>Your Details</h4>
+        <ul class="list-group">
+          <li class="list-group-item">
+            <strong>Username:</strong> {{ user.username }}
+          </li>
+          <li class="list-group-item">
+            <strong>Email:</strong> {{ user.email }}
+          </li>
+          <li class="list-group-item">
+            <strong>Joined:</strong> {{ user.date_joined|date:'Y-m-d' }}
+          </li>
+          <li class="list-group-item">
+            <strong>Last Login:</strong> {{ user.last_login|date:'Y-m-d H:i' }}
+          </li>
+        </ul>
+      </div>
+
+      <div class="col-md-6 my-2">
+        <h4>Your File Statistics</h4>
+        <ul class="list-group">
+          <li class="list-group-item">
+            <strong>Files Uploaded:</strong> {{ files_uploaded }}
+          </li>
+          <li class="list-group-item">
+            <strong>Files Shared with Others:</strong> {{ files_shared_with_others }}
+          </li>
+          <li class="list-group-item">
+            <strong>Files Shared with Me:</strong> {{ files_shared_with_me }}
+          </li>
+        </ul>
+      </div>
+
+      <div class="col-md-6 my-2">
+        <h4>Change Password</h4>
+        <form method="post">
+          {% csrf_token %}
+          {{ password_form|crispy }}
+          <button class="btn btn-primary mt-2" type="submit">Update Password</button>
+        </form>
+      </div>
+    </div>
+
+    <hr />
+  </div>
+{% endblock %}

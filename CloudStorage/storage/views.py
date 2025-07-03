@@ -8,6 +8,8 @@ from .forms import RegisterForm, UploadedFilesForm, LoginForm
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound
 from django.contrib.auth import login, logout, authenticate, get_user_model
 from django.contrib.auth.models import User
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.shortcuts import render, redirect, get_object_or_404
@@ -19,6 +21,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.files.base import ContentFile
 from django.core.paginator import Paginator
+from django.core.exceptions import ValidationError
 from django.db.models.functions import TruncDay
 from django.db.models import Count
 import calendar
@@ -31,6 +34,7 @@ from .utils import (
     split_file_to_chunks,
     decrypt_and_combine_chunks,
     log_file_action,
+    validate_file_upload,
 )
 
 from .tokens import account_activation_token
@@ -75,7 +79,7 @@ def activate(request, uidb64, token):
 def activate_email(request, user, to_email):
     mail_subject = 'Activate your user account'
     message = render_to_string('template_activate_account.html', {
-        'user': user.username,
+        'user': user,
         'domain': get_current_site(request).domain,
         'uid': urlsafe_base64_encode(force_bytes(user.pk)),
         'token': account_activation_token.make_token(user),
@@ -98,13 +102,31 @@ def login_view(request):
         if form.is_valid():
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
-            user = authenticate(request, username=username, password=password)
+
+            try:
+                # Check if user exists
+                user = User.objects.get(username=username)
+            except User.DoesNotExist:
+                try:
+                    # Optional: Try with email too
+                    user = User.objects.get(email=username)
+                except User.DoesNotExist:
+                    user = None
+
             if user is not None:
-                send_otp(request, user)
-                request.session['username'] = username
-                return redirect('otp')
+                if not user.is_active:
+                    form.add_error(None, 'Your email is registered but not verified.')
+                else:
+                    # Auth only if verified
+                    user = authenticate(request, username=user.username, password=password)
+                    if user:
+                        send_otp(request, user)
+                        request.session['username'] = username
+                        return redirect('otp')
+                    else:
+                        form.add_error(None, 'Invalid credentials.')
             else:
-                form.add_error(None, 'Invalid credentials')  # Show an error on form
+                form.add_error(None, 'Invalid credentials.')  # Generic message if user not found
     else:
         form = LoginForm()
 
@@ -200,6 +222,35 @@ def logout_view(request):
 
 
 @login_required
+def my_profile(request):
+    user = request.user
+    password_form = PasswordChangeForm(user)
+
+    if request.method == 'POST':
+        password_form = PasswordChangeForm(user, request.POST)
+        if password_form.is_valid():
+            password_form.save()
+            update_session_auth_hash(request, password_form.user)
+            messages.success(request, 'Your password was successfully updated.')
+            return redirect('my_profile')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+
+    # ✅ File Stats
+    files_uploaded = UploadedFiles.objects.filter(owner=user).count()
+    files_shared_with_others = UploadedFiles.objects.filter(owner=user).exclude(shared_users=None).count()
+    files_shared_with_me = UploadedFiles.objects.filter(shared_users=user).count()
+
+    return render(request, 'storage/users/my_profile.html', {
+        'user': user,
+        'password_form': password_form,
+        'files_uploaded': files_uploaded,
+        'files_shared_with_others': files_shared_with_others,
+        'files_shared_with_me': files_shared_with_me,
+    })
+    
+
+@login_required
 def myFilesIndex(request):
     files = UploadedFiles.objects.filter(owner=request.user).order_by('-created_at')
     paginator = Paginator(files, 3)  # Show 10 files per page
@@ -249,8 +300,18 @@ def create_file(request):
 
         if not file_obj:
             messages.error(request, "You must select a file.")
-
-        elif form.is_valid():
+        elif file_obj:
+            try:
+                validate_file_upload(file_obj)
+            except ValidationError as ve:
+                # Extract first message cleanly
+                error_message = ve.messages[0] if hasattr(ve, 'messages') else str(ve)
+                messages.error(request, error_message)
+                return render(request, 'storage/files/create_file.html', {
+                    'form': form
+                })
+                
+        if form.is_valid():
             uploaded_file = form.save(commit=False)
             uploaded_file.owner = request.user
             uploaded_file.original_title = file_obj.name

@@ -7,15 +7,24 @@ from crispy_forms.layout import Layout, Submit, Field
 
 
 class RegisterForm(UserCreationForm):
-    email = forms.EmailField(required=True)
+    username = forms.CharField(required=True,
+        widget=forms.TextInput(attrs={'autocomplete': 'off'})
+    )
+    email = forms.EmailField(required=True,
+        widget=forms.TextInput(attrs={'autocomplete': 'off'})
+    )
     class Meta:
         model = User
         fields = ["username", "email", "password1", "password2"]    
         
 
 class LoginForm(forms.Form):
-    username = forms.CharField()
-    password = forms.CharField(widget=forms.PasswordInput())
+    username = forms.CharField(
+        widget=forms.TextInput(attrs={'autocomplete': 'off'})
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput()
+    )
     
 
 class UploadedFilesForm(forms.ModelForm):
@@ -31,6 +40,10 @@ class UploadedFilesForm(forms.ModelForm):
         fields = ['file_description', 'shared_users', 'shared_groups']
         
         widgets = {
+            'file_description': forms.TextInput(attrs={
+                'class': 'form-control',
+                'autocomplete': 'off'
+            }),
             # Bootstrap form-control class
             'shared_users': forms.SelectMultiple(attrs={'class': 'form-control'}),
             'shared_groups': forms.SelectMultiple(attrs={'class': 'form-control'}),

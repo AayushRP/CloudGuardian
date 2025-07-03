@@ -9,6 +9,7 @@ urlpatterns = [
     path('otp/', views.otp_view, name='otp'),
     path('logout/', views.logout_view, name='logout'),
     path('activate/<uidb64>/<token>/', views.activate, name='activate'),
+    path('my-profile/', views.my_profile, name='my_profile'),
     path("files/my-files/", views.myFilesIndex , name="my_files_index"),
     path("files/shared-files/", views.sharedFilesIndex , name="shared_files_index"),
     path("files/create-file/", views.create_file , name="create_file"),

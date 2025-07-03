@@ -2,6 +2,7 @@ import os
 import hashlib
 import tempfile
 import pyotp
+import magic
 from .models import FileChunks, FileActivityLog
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
@@ -11,6 +12,12 @@ from django.template.loader import render_to_string
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMessage
 from django.contrib import messages
+from django.core.exceptions import ValidationError
+
+
+ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png']
+ALLOWED_MIME_TYPES = ['application/pdf', 'image/jpg', 'image/jpeg', 'image/png']
+MAX_FILE_SIZE_MB = 50
 
 
 def send_otp(request, user):
@@ -112,4 +119,22 @@ def log_file_action(file, user, action, details=""):
         performed_by=user,
         details=details
     )
+    
+        
+def validate_file_upload(file_obj):
+    # 1. Check file size
+    if file_obj.size > MAX_FILE_SIZE_MB * 1024 * 1024:
+        raise ValidationError(f"File size must not exceed {MAX_FILE_SIZE_MB} MB.")
+
+    # 2. Check file extension
+    ext = os.path.splitext(file_obj.name)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise ValidationError("Unsupported file extension. Allowed: PDF, JPG, PNG.")
+
+    # 3. Check actual file content type using python-magic
+    mime = magic.from_buffer(file_obj.read(2048), mime=True)
+    file_obj.seek(0)  # Reset pointer after reading
+    if mime not in ALLOWED_MIME_TYPES:
+        raise ValidationError(f"Unsupported file type detected: {mime}. Allowed types: PDF, JPG, PNG.")
+
     
