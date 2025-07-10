@@ -21,5 +21,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('storage.urls')),
     path('', include('django.contrib.auth.urls')),
-    
+
 ]
+
+handler403 = 'storage.views.custom_permission_denied_view'
+handler404 = 'storage.views.custom_resource_not_found_view'
+

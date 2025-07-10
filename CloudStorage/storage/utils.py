@@ -22,10 +22,10 @@ MAX_FILE_SIZE_MB = 50
 
 def send_otp(request, user):
     to_email = user.email
-    topt = pyotp.TOTP(pyotp.random_base32(), interval=60)
+    topt = pyotp.TOTP(pyotp.random_base32(), interval=120)
     otp = topt.now()
     request.session['otp_secret_key'] = topt.secret
-    valid_date = datetime.now() + timedelta(minutes=1)
+    valid_date = datetime.now() + timedelta(minutes=2)
     request.session['otp_valid_date'] = str(valid_date)    
     mail_subject = 'OTP for Login'
     message = render_to_string('template_enter_otp.html', {

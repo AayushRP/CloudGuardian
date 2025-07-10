@@ -20,6 +20,14 @@
       </div>
     {% endif %}
 
+    <div class="mt-4">
+      <h4>Storage Usage</h4>
+      <div class="progress mb-2" style="height: 20px;">
+        <div class="progress-bar" role="progressbar" style="width: {{ usage_percent }}%;" aria-valuenow="{{ usage_percent }}" aria-valuemin="0" aria-valuemax="100">{{ usage_percent }}%</div>
+      </div>
+      <p>{{ storage_used|filesizeformat }} of {{ storage_limit|filesizeformat }} used</p>
+    </div>
+
     <div class="row mt-4">
       <div class="col-md-6">
         <div class="card">

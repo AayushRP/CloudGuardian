@@ -1,6 +1,36 @@
 from django.db import models
 from django.contrib.auth.models import User, Group
 import uuid
+from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    storage_limit = models.BigIntegerField(default=10 * 1024 * 1024)  # 10MB default
+
+    def used_storage(self):
+        return sum(f.file_size for f in self.user.uploadedfiles_set.all())
+
+    def usage_percent(self):
+        if self.storage_limit == 0:
+            return 0
+        return round((self.used_storage() / self.storage_limit) * 100, 2)
+
+    def __str__(self):
+        return f"{self.user.username} Profile"
+
+# Auto-create UserProfile when new User is created
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    instance.profile.save()
+    
 
 class UploadedFiles(models.Model):
     file_uid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)  # NEW
@@ -8,6 +38,7 @@ class UploadedFiles(models.Model):
     original_title = models.CharField(max_length=200)
     file_description = models.CharField(max_length=300, blank=True)
     file_hash = models.CharField(max_length=128)  # SHA-512
+    file_size = models.BigIntegerField(default=0)  # store size in bytes
     shared_users = models.ManyToManyField(User, related_name='shared_files_users', blank=True)
     shared_groups = models.ManyToManyField(Group, related_name='shared_files_groups', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

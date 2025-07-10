@@ -6,6 +6,7 @@ from django.db.models import Q
 from .models import UploadedFiles, FileChunks, FileActivityLog
 from .forms import RegisterForm, UploadedFilesForm, LoginForm
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound
+from django.core.exceptions import PermissionDenied
 from django.contrib.auth import login, logout, authenticate, get_user_model
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import PasswordChangeForm
@@ -143,7 +144,7 @@ def otp_view(request):
             valid_date = datetime.fromisoformat(otp_valid_date)
         
             if valid_date > datetime.now():
-                totp = pyotp.TOTP(otp_secret_key, interval=60)
+                totp = pyotp.TOTP(otp_secret_key, interval=120)
                 if totp.verify(otp):
                     user = get_object_or_404(User, username=username)
                     login(request, user)
@@ -166,6 +167,8 @@ def home(request):
     if 'username' in request.session:
         del request.session['username']
     user = request.user
+    
+    messages.success(request, 'Logged in successfully.')
 
     # 📤 Uploaded Files Daily
     uploaded_stats = (
@@ -203,6 +206,9 @@ def home(request):
         'uploaded_counts': uploaded_counts,
         'shared_labels': shared_labels,
         'shared_counts': shared_counts,
+        'storage_used': request.user.profile.used_storage(),
+        'storage_limit': request.user.profile.storage_limit,
+        'usage_percent': request.user.profile.usage_percent(),
     }
 
     if user.is_staff:
@@ -241,12 +247,23 @@ def my_profile(request):
     files_shared_with_others = UploadedFiles.objects.filter(owner=user).exclude(shared_users=None).count()
     files_shared_with_me = UploadedFiles.objects.filter(shared_users=user).count()
 
+    # ✅ Storage Usage Calculation
+    uploaded_files = UploadedFiles.objects.filter(owner=user)
+    total_storage_used = sum(file.file_size for file in uploaded_files)  # in bytes
+
+    storage_limit = user.profile.storage_limit  # if you have a user profile model, replace this dynamically
+
+    used_percentage = round((total_storage_used / storage_limit) * 100, 2) if storage_limit else 0
+
     return render(request, 'storage/users/my_profile.html', {
         'user': user,
         'password_form': password_form,
         'files_uploaded': files_uploaded,
         'files_shared_with_others': files_shared_with_others,
         'files_shared_with_me': files_shared_with_me,
+        'total_storage_used': total_storage_used,
+        'storage_limit': storage_limit,
+        'used_percentage': used_percentage,
     })
     
 
@@ -300,6 +317,9 @@ def create_file(request):
 
         if not file_obj:
             messages.error(request, "You must select a file.")
+            return render(request, 'storage/files/create_file.html', {
+                    'form': form
+                })
         elif file_obj:
             try:
                 validate_file_upload(file_obj)
@@ -318,9 +338,17 @@ def create_file(request):
             
             # Read entire file into memory
             file_bytes = file_obj.read()
-
+            file_size = len(file_bytes)
+            
+            #Check storage usage
+            profile = request.user.profile
+            if profile.used_storage() + file_size > profile.storage_limit:
+                messages.error(request, "Upload failed: You have exceeded your storage limit.")
+                return render(request, 'storage/files/create_file.html', {'form': form})
+            
             # 1. Compute and save file hash
             file_hash = compute_sha256(file_bytes)
+            uploaded_file.file_size = file_size
             uploaded_file.file_hash = file_hash
             uploaded_file.save()
             form.save_m2m()
@@ -370,7 +398,9 @@ def view_file(request, file_uid):
     is_allowed = is_owner or is_shared_user or is_shared_with_group
 
     if not is_allowed:
-        return HttpResponseForbidden("You do not have permission to view this file.")
+        # return HttpResponseForbidden("You do not have permission to view this file.")
+        raise PermissionDenied()
+
 
     return render(request, 'storage/files/view_file.html', {
         'file': uploaded_file,
@@ -418,7 +448,8 @@ def change_permissions(request, file_uid):
     file = get_object_or_404(UploadedFiles, file_uid=file_uid)
 
     if file.owner != request.user:
-        return HttpResponseForbidden("You do not have permission to change permissions for this file.")
+        # return HttpResponseForbidden("You do not have permission to change permissions for this file.")
+        raise PermissionDenied()
 
     if request.method == 'POST':
         form = UploadedFilesForm(request.POST, instance=file)
@@ -476,7 +507,8 @@ def download_file(request, file_uid):
     is_shared_with_group = uploaded_file.shared_groups.filter(id__in=request.user.groups.values_list('id', flat=True)).exists()
 
     if not (is_owner or is_shared_user or is_shared_with_group):
-        return HttpResponseForbidden("You do not have permission to download this file.")
+        # return HttpResponseForbidden("You do not have permission to download this file.")
+        raise PermissionDenied()
 
     # File integrity and decryption
     combined_file_path = decrypt_and_combine_chunks(uploaded_file)
@@ -507,7 +539,8 @@ def current_file_logs_list(request):
 @staff_member_required
 def current_file_log_details(request, file_uid):
     if not request.user.is_staff:
-        return HttpResponseForbidden("You do not have permission to view this page.")
+        # return HttpResponseForbidden("You do not have permission to view this page.")
+        raise PermissionDenied()
     
     logs = FileActivityLog.objects.filter(file_uid=file_uid)
 
@@ -531,7 +564,8 @@ def current_file_log_details(request, file_uid):
 @staff_member_required
 def export_all_file_logs(request):
     if not request.user.is_staff:
-        return HttpResponseForbidden("You do not have permission to download the logs of the system.")
+        # return HttpResponseForbidden("You do not have permission to download the logs of the system.")
+        raise PermissionDenied()
     
     logs = FileActivityLog.objects.all().order_by('-timestamp')
 
@@ -561,7 +595,8 @@ def export_all_file_logs(request):
 @staff_member_required
 def export_individual_file_logs(request, file_uid):
     if not request.user.is_staff:
-        return HttpResponseForbidden("You do not have permission to download the logs for this file.")
+        # return HttpResponseForbidden("You do not have permission to download the logs for this file.")
+        raise PermissionDenied()
     
     logs = FileActivityLog.objects.filter(file_uid=file_uid)
     if not logs.exists():
@@ -585,3 +620,11 @@ def export_individual_file_logs(request, file_uid):
         ])
 
     return response
+
+
+def custom_permission_denied_view(request, exception=None):
+    return render(request, 'errors/403.html', status=403)
+
+
+def custom_resource_not_found_view(request, exception):
+    return render(request, 'errors/404.html', status=404)
