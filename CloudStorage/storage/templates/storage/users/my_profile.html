@@ -75,41 +75,40 @@
 {% endblock %}
 
 {% block js_scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  const usedStorage = {{ total_storage_used }};
-  const storageLimit = {{ storage_limit }};
-  const remainingStorage = storageLimit - usedStorage;
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="text/javascript">
+    const usedStorage = {{ total_storage_used }};
+    const storageLimit = {{ storage_limit }};
+    const remainingStorage = storageLimit - usedStorage;
 
-  const ctx = document.getElementById('storagePieChart').getContext('2d');
-  const storageChart = new Chart(ctx, {
-    type: 'pie',
-    data: {
-      labels: ['Used Storage', 'Remaining Storage'],
-      datasets: [{
-        data: [usedStorage, remainingStorage],
-        backgroundColor: ['#38effa', '#1228b1'],  // Blue for used, grey for remaining
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: 'bottom',
-        },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              const bytes = context.raw;
-              const mb = (bytes / (1024 * 1024)).toFixed(2);
-              return `${context.label}: ${mb} MB`;
+    const ctx = document.getElementById('storagePieChart').getContext('2d');
+    const storageChart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['Used Storage', 'Remaining Storage'],
+        datasets: [{
+          data: [usedStorage, remainingStorage],
+          backgroundColor: ['#38effa', '#1228b1'],  // Blue for used, grey for remaining
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom',
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const bytes = context.raw;
+                const mb = (bytes / (1024 * 1024)).toFixed(2);
+                return `${context.label}: ${mb} MB`;
+              }
             }
           }
         }
       }
-    }
-  });
+    });
 </script>
 {% endblock %}
-
